@@ -23,6 +23,7 @@ import json # Import module to do label mapping
 import datetime # Date and time for time stamp in file name
 import pytz # Adjust time zone for time stamp in file name
 from PIL import Image # Process image for prediction
+import utility_functions as utf # Import module with custom utility functions
 
 
 def set_up_workspace():
@@ -31,6 +32,10 @@ def set_up_workspace():
     """
     # Set defaults for the workspace
     warnings.filterwarnings('ignore')
+
+    # Avoid Error #15: Initializing libiomp5.dylib, but found libiomp5.dylib already initialized.
+    # https://stackoverflow.com/questions/53014306/error-15-initializing-libiomp5-dylib-but-found-libiomp5-dylib-already-initial
+    os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
     # Magic command for inline plotting
     # %matplotlib inline
@@ -50,8 +55,6 @@ def set_up_workspace():
     print('\t\u2022 tf.keras version:', tf.keras.__version__)
     print('\t\u2022 Running on GPU' if tf.test.is_gpu_available() else '\t\u2022 GPU device not found. Running on CPU')
 
-    print('\nDone setting up workspace...')
-
 def load_data_set():
     """
     Load the dataset with TensorFlow Datasets and create a training set, a validation set and a test set
@@ -59,7 +62,7 @@ def load_data_set():
     # https://www.tensorflow.org/datasets/catalog/oxford_flowers102
     """
     # Define global variables
-    global dataset, dataset_info, training_set, validation_set, test_set, class_names
+    global dataset, dataset_info, training_set, validation_set, test_set, num_classes, class_names
 
     # Load the dataset with TensorFlow Datasets.
     dataset, dataset_info = tfds.load('oxford_flowers102', as_supervised=True, shuffle_files=True, with_info=True)
@@ -67,52 +70,12 @@ def load_data_set():
     # Create a training set, a validation set and a test set.
     training_set, validation_set, test_set = dataset['train'], dataset['validation'], dataset['test']
 
-    # Load mapping from label to category name
-    with open('label_map.json', 'r') as f:
-        class_names = json.load(f)
-
-    print('\nDone loading data...')
-
-def explore_dataset():
-    """
-    Explore the loaded dada set
-    """
-    # Define global variables
-    global num_classes
-
-    # Display dataset_info
-    dataset_info
-
-    # Get the number of examples in each set from the dataset info.
-    train_num_examples = dataset_info.splits['train'].num_examples
-    validation_num_examples = dataset_info.splits['validation'].num_examples
-    test_num_examples = dataset_info.splits['test'].num_examples
     # Get the number of classes in the dataset from the dataset info.
     num_classes = dataset_info.features['label'].num_classes
 
-    # Print the above values
-    print('There are {:,} images in the training set'.format(train_num_examples))
-    print('There are {:,} images in the validation set'.format(validation_num_examples))
-    print('There are {:,} images in the test set'.format(test_num_examples))
-    print('There are {:,} classes in the data set'.format(num_classes))
-
-    # Print the shape and corresponding label of 3 images in the training set.
-    for image, label in training_set.take(3):
-        image = image.numpy().squeeze()
-        label = label.numpy()
-        print('The shape of the image is', image.shape)
-        print('The label of the image is', label)
-
-    # Plot 1 image from the training set. Set the title
-    # of the plot to the corresponding class name.
-    for image, label in training_set.take(1):
-        image = image.numpy().squeeze()
-        label = label.numpy()
-        plt.imshow(image)
-        plt.title(class_names[str(label)])
-        plt.show()
-
-    print('\nDone exploring data set...')
+    # Load mapping from label to category name
+    with open('label_map.json', 'r') as f:
+        class_names = json.load(f)
 
 def create_pipeline():
     """
@@ -137,8 +100,6 @@ def create_pipeline():
     validation_batches = validation_set.map(format_image).batch(batch_size).prefetch(1)
     testing_batches = test_set.map(format_image).batch(batch_size).prefetch(1)
 
-    print('\nDone creating pipeline...')
-
 def train_classifier():
     """
     Build and train your network.
@@ -159,7 +120,7 @@ def train_classifier():
     dropout_rate = 0.2
 
     # Number of epochs. The high number is on purpose, as early stopping is implemented.
-    num_max_epochs = 3
+    num_max_epochs = 50
 
     # Build model
     model = tf.keras.Sequential([feature_extractor,
@@ -194,8 +155,6 @@ def train_classifier():
                         validation_data=validation_batches,
                         callbacks=[early_stopping, save_best_model])
 
-    print('\nDone training classifier...')
-
 def main():
     """
     main function
@@ -207,7 +166,7 @@ def main():
     load_data_set()
 
     # Explore loaded data set
-    explore_dataset()
+    utf.explore_dataset(dataset_info, training_set, num_classes, class_names)
 
     # Create a pipeline for the training, validation and testing set
     create_pipeline()
@@ -215,8 +174,14 @@ def main():
     # Build and train model
     train_classifier()
 
-    # Indicate and of script
-    print('End of script')
+    # Plot loss & accuracy for training & validation set.
+    utf.training_performance(history)
+
+    # Print the loss and accuracy values achieved on the entire test set
+    utf.model_test(model, testing_batches, class_names)
+
+    # Show all matplotlib plots made in the script
+    plt.show()
 
 # Run main function
 if __name__ == '__main__':
