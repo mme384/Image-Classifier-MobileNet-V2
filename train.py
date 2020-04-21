@@ -3,7 +3,7 @@
 """
     FILE NAME: train.py
     AUTHOR: Michalis Meyer
-    DATE CREATED: 
+    DATE CREATED: 19.04.2020
     DATE LAST MODIFIED: 
     PYTHON VERSION: 
     SAMPLE COMMAND LINE: 
