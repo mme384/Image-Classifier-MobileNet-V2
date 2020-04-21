@@ -165,7 +165,7 @@ def main():
     # Load dataset and create training set, validation set and test set
     load_data_set()
 
-    # Explore loaded data set
+    # Explore loaded data set using utility functions
     utf.explore_dataset(dataset_info, training_set, num_classes, class_names)
 
     # Create a pipeline for the training, validation and testing set
@@ -174,10 +174,10 @@ def main():
     # Build and train model
     train_classifier()
 
-    # Plot loss & accuracy for training & validation set.
+    # Plot loss & accuracy for training & validation set using utility functions
     utf.training_performance(history)
 
-    # Print the loss and accuracy values achieved on the entire test set
+    # Print the loss and accuracy values achieved on the entire test set using utility functions
     utf.model_test(model, testing_batches, class_names)
 
     # Show all matplotlib plots made in the script
