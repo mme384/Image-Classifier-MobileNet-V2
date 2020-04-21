@@ -218,7 +218,6 @@ def main():
     # Indicate and of script
     print('End of script')
 
-
 # Run main function
 if __name__ == '__main__':
     main()
