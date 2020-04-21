@@ -11,7 +11,6 @@
 """
 # Import modules
 import warnings # Import module to deal with warnings
-# from IPython import get_ipython, set_matplotlib_formats # Import module to enable IPython magic commands such as %matplotlib inline and %config InlineBackend.figure_format = 'retina'
 import numpy as np # Import module to use numpy
 import matplotlib.pyplot as plt # Import module to use matplotlib
 import tensorflow as tf # Import module to use tensorflow
@@ -36,8 +35,6 @@ def set_up_workspace():
     # Magic command for inline plotting
     # %matplotlib inline
     # %config InlineBackend.figure_format = 'retina'
-    # get_ipython().run_line_magic('matplotlib', 'inline')
-    # set_matplotlib_formats('retina')
 
     # Disable progress bar to keep shell nice and tidy
     tfds.disable_progress_bar()
@@ -47,10 +44,13 @@ def set_up_workspace():
     logger.setLevel(logging.ERROR)
 
     # Print some details
+    print('\nDETAILS')
     print('Using:')
     print('\t\u2022 TensorFlow version:', tf.__version__)
     print('\t\u2022 tf.keras version:', tf.keras.__version__)
     print('\t\u2022 Running on GPU' if tf.test.is_gpu_available() else '\t\u2022 GPU device not found. Running on CPU')
+
+    print('\nDone setting up workspace...')
 
 def load_data_set():
     """
@@ -71,10 +71,15 @@ def load_data_set():
     with open('label_map.json', 'r') as f:
         class_names = json.load(f)
 
+    print('\nDone loading data...')
+
 def explore_dataset():
     """
     Explore the loaded dada set
     """
+    # Define global variables
+    global num_classes
+
     # Display dataset_info
     dataset_info
 
@@ -107,6 +112,89 @@ def explore_dataset():
         plt.title(class_names[str(label)])
         plt.show()
 
+    print('\nDone exploring data set...')
+
+def create_pipeline():
+    """
+    Create a pipeline for the training, validation and testing set
+    """
+    # Define global variables
+    global batch_size, image_size, training_batches, validation_batches, testing_batches
+
+    # Define batch size and image size
+    batch_size = 64
+    image_size = 224
+
+    # Define function to convert images to appropriate format, resize to fit the input layer and normalize it
+    def format_image(image, label):
+        image = tf.cast(image, tf.float32)
+        image = tf.image.resize(image, [image_size, image_size])
+        image /= 255
+        return image, label
+
+    # Define batches, while modifying images according to above function as well as batch and prefetch them
+    training_batches = training_set.map(format_image).batch(batch_size).prefetch(1)
+    validation_batches = validation_set.map(format_image).batch(batch_size).prefetch(1)
+    testing_batches = test_set.map(format_image).batch(batch_size).prefetch(1)
+
+    print('\nDone creating pipeline...')
+
+def train_classifier():
+    """
+    Build and train your network.
+    """
+    # Define global variables
+    global model, history
+
+    # URL to the MobileNet pre-trained model
+    URL = "https://tfhub.dev/google/tf2-preview/mobilenet_v2/feature_vector/4"
+
+    # Load pre-trained MobileNet feature extractor and wrap it into a Keras layer to be used as the first layer in the model
+    feature_extractor = hub.KerasLayer(URL, input_shape=(image_size, image_size, 3))
+
+    # Set the feature extractor as untrainable (as it is pre-trained)
+    feature_extractor.trainable = False
+
+    # Define dropout rate
+    dropout_rate = 0.2
+
+    # Number of epochs. The high number is on purpose, as early stopping is implemented.
+    num_max_epochs = 3
+
+    # Build model
+    model = tf.keras.Sequential([feature_extractor,
+                                 tf.keras.layers.Dense(512, activation='relu'),
+                                 tf.keras.layers.Dropout(dropout_rate),
+                                 tf.keras.layers.Dense(256, activation='relu'),
+                                 tf.keras.layers.Dropout(dropout_rate),
+                                 tf.keras.layers.Dense(num_classes, activation='softmax')])
+    # Print model summary
+    model.summary()
+
+    # Set parameters useed to train model
+    model.compile(optimizer='adam',
+                  loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
+
+    # Define callback function for early stopping
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
+                                                      patience=5)
+
+    # Save best model
+    # Path and filename with time stamp to save best model
+    path_and_filename = './model_' + datetime.datetime.now(pytz.timezone('Europe/Zurich')).strftime(
+        "%Y%m%d_%H%M%S") + '.h5'
+    # Define callback function to save best model
+    save_best_model = tf.keras.callbacks.ModelCheckpoint(path_and_filename,
+                                                         monitor='val_loss',
+                                                         save_best_only=True)
+
+    history = model.fit(training_batches,
+                        epochs=num_max_epochs,
+                        validation_data=validation_batches,
+                        callbacks=[early_stopping, save_best_model])
+
+    print('\nDone training classifier...')
 
 def main():
     """
@@ -121,9 +209,14 @@ def main():
     # Explore loaded data set
     explore_dataset()
 
+    # Create a pipeline for the training, validation and testing set
+    create_pipeline()
+
+    # Build and train model
+    train_classifier()
+
     # Indicate and of script
     print('End of script')
-
 
 
 # Run main function
