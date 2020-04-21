@@ -98,7 +98,7 @@ def model_test(model, testing_batches, class_names):
         images = image_batch.numpy().squeeze()
         labels = label_batch.numpy()
 
-    # Prepare the plot
+    # Prepare plot
     plt.figure(figsize=(10, 15))
 
     # Plot the images and their prediction. Green titles correctly classified, red titlels misclassified
