@@ -6,7 +6,7 @@
     DATE CREATED: 21.04.2020
     DATE LAST MODIFIED: 
     PYTHON VERSION: 3.7
-    SCRIPT PURPOSE: Utility functions for train.py file
+    SCRIPT PURPOSE: Utility functions
 """
 # Import modules
 import numpy as np # Import module to use numpy
@@ -98,7 +98,7 @@ def model_test(model, testing_batches, class_names):
         images = image_batch.numpy().squeeze()
         labels = label_batch.numpy()
 
-    # Prepare plot
+    # Prepare the plot
     plt.figure(figsize=(10, 15))
 
     # Plot the images and their prediction. Green titles correctly classified, red titlels misclassified
