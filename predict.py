@@ -7,9 +7,11 @@
     DATE LAST MODIFIED: 
     PYTHON VERSION: 3.7
     SCRIPT PURPOSE: Predict the class of an image
+    SAMPLE COMMAND LINE: python predict.py --file_path './test_images/hard-leaved_pocket_orchid.jpg' --model_filename 'model_20200421_235721.h5' --top_k 5  --category_names 'label_map.json'
 """
 # Import modules
 import warnings # Import module to deal with warnings
+from argparse import ArgumentParser # Import module to parse arguments
 import numpy as np # Import module to use numpy
 import matplotlib.pyplot as plt # Import module to use matplotlib
 import tensorflow as tf # Import module to use tensorflow
@@ -35,6 +37,54 @@ def set_up_workspace():
     # %matplotlib inline
     # %config InlineBackend.figure_format = 'retina'
 
+def get_input_args():
+    """
+    Retrieve and parse command line arguments.
+    Command Line Arguments:
+       - Image file path as --file_path
+       - Model path and file name as --model_filename
+       - Top k classes to be returned as --top_k
+       - Path to json file mapping labels as --category_names
+    This function returns these arguments as an ArgumentParser object.
+    Parameters:
+       None - simply using argparse module to create & store command line arguments
+    Returns:
+       parse_args() - data structure that stores the command line arguments object.
+    """
+    # Create Parse using ArgumentParser
+    parser = ArgumentParser()
+
+    # Image file path as --file_path
+    # Path to test images
+    # image_path = './test_images/hard-leaved_pocket_orchid.jpg'
+    # image_path = './test_images/cautleya_spicata.jpg'
+    # image_path = './test_images/orange_dahlia.jpg'
+    # image_path = './test_images/wild_pansy.jpg'
+    parser.add_argument("--file_path",
+                        type = str,
+                        default = './test_images/hard-leaved_pocket_orchid.jpg',
+                        help = "Image file path.")
+
+    # Model file name as --model_filename
+    parser.add_argument("--model_filename",
+                        type = str,
+                        default = 'model_20200421_235721.h5',
+                        help = "Model path and file name.")
+
+    # Top k classes to be returned as --top_k with default value 5
+    parser.add_argument("--top_k",
+                        type = int,
+                        default = 5,
+                        help = "Number of epochs. Default = 5")
+
+    # json file mapping labels as --category_names
+    parser.add_argument("--category_names",
+                        type = str,
+                        default = 'label_map.json',
+                        help = "json file mapping labels.")
+
+    return parser.parse_args()
+
 def load_model(model_filename):
     """
     Load the Keras model
@@ -50,14 +100,14 @@ def load_model(model_filename):
 
     return model
 
-def predict(image_path, model, class_names, top_k=5):
+def predict(image_path, model, class_names, top_k):
     '''
     Predicts class of image based on model
 
     Parameters:     image_path      Path of the image to be classified
                     model:          Name of the trained model
                     class_names:    Complete list containing class names and their indices
-                    top_k:          Top k probalibilites and classes to be returned by the function (Default 5)
+                    top_k:          Top k probalibilites and classes to be returned by the function
     Returns:        top_k_probs_np  Numpy array of top k probabilities predicted by the model
                     top_k_classes   List of top k classes predicted by the model
     '''
@@ -98,29 +148,23 @@ def main():
     # Set up the workspace
     set_up_workspace()
 
-    # Filename of the last saved model
-    model_filename = 'model_20200421_235721.h5'
+    # Assigns variable in_args to parse_args()
+    in_args = get_input_args()
 
     # Load model
-    model = load_model(model_filename)
+    model = load_model(in_args.model_filename)
 
     # Load mapping from label to category name
-    with open('label_map.json', 'r') as f:
+    with open(in_args.category_names, 'r') as f:
         class_names = json.load(f)
 
-    # Path to test images
-    image_path = './test_images/hard-leaved_pocket_orchid.jpg'
-    # image_path = './test_images/cautleya_spicata.jpg'
-    # image_path = './test_images/orange_dahlia.jpg'
-    # image_path = './test_images/wild_pansy.jpg'
-
     # Load test image, convert to numpy array, process image
-    org_image = Image.open(image_path)
+    org_image = Image.open(in_args.file_path)
     test_image = np.asarray(org_image)
     test_image = utf.process_image(test_image)
 
     # Predict class and probability of image
-    probs, top_k_classes = predict(image_path, model, class_names, 5)
+    probs, top_k_classes = predict(in_args.file_path, model, class_names, in_args.top_k)
 
     # Plot image, classes and probabilities
     utf.show_image(test_image, probs, top_k_classes)
