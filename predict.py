@@ -23,6 +23,9 @@ import utility_functions as utf # Import module with custom utility functions
 def set_up_workspace():
     """
     Setup up the workspace
+
+    Parameters:     None
+    Returns:        None
     """
     # Avoid Error #15: Initializing libiomp5.dylib, but found libiomp5.dylib already initialized.
     # https://stackoverflow.com/questions/53014306/error-15-initializing-libiomp5-dylib-but-found-libiomp5-dylib-already-initial
@@ -35,7 +38,9 @@ def set_up_workspace():
 def load_model(model_filename):
     """
     Load the Keras model
-    Returns the model
+
+    Parameters:     The model file name for the trained TensorFlow Keras model
+    Returns:        Returns the model
     """
     # Reload model
     model = tf.keras.models.load_model(model_filename, custom_objects={'KerasLayer': hub.KerasLayer})
@@ -45,30 +50,23 @@ def load_model(model_filename):
 
     return model
 
-# TODO: Create the process_image function
-def process_image(image):
-    '''
-    Process image to be ready for model
-    '''
-    # Define image size
-    image_size = 224
-
-    image = tf.cast(image, tf.float32)
-    image = tf.image.resize(image, (image_size, image_size))
-    image /= 255
-    return image
-
 def predict(image_path, model, class_names, top_k=5):
     '''
     Predicts class of image based on model
-    Returns top k probabilities
+
+    Parameters:     image_path      Path of the image to be classified
+                    model:          Name of the trained model
+                    class_names:    Complete list containing class names and their indices
+                    top_k:          Top k probalibilites and classes to be returned by the function (Default 5)
+    Returns:        top_k_probs_np  Numpy array of top k probabilities predicted by the model
+                    top_k_classes   List of top k classes predicted by the model
     '''
     # Open image
     image = Image.open(image_path)
     # Conevrt image to numpy array
     image_np = np.asarray(image)
     # Process image to be ready for prediction
-    processed_image = process_image(image_np)
+    processed_image = utf.process_image(image_np)
     # Expand shape (224, 224, 3) to (1, 224, 224, 3) to represent the batch size.
     expanded_image = np.expand_dims(processed_image, axis=0)
 
@@ -90,25 +88,12 @@ def predict(image_path, model, class_names, top_k=5):
 
     return top_k_probs_np, top_k_classes
 
-def show_image(image, probs, classes):
-    '''
-    Plot image and top k classes predicted by the model
-    '''
-    fig, (ax1, ax2) = plt.subplots(figsize = (10,5), ncols = 2)
-    ax1.imshow(image, cmap = plt.cm.binary)
-    ax1.axis('off')
-    ax1.set_title('Image')
-    ax2.barh(np.arange(probs.size), probs)
-    ax2.set_aspect(0.2)
-    ax2.set_yticks(np.arange(probs.size))
-    ax2.set_yticklabels(classes, size = 'small')
-    ax2.set_title('Top k Probabilities')
-    ax2.set_xlim(0, 1.1)
-    plt.tight_layout()
-
 def main():
     """
     Main function
+
+    Parameters:     None
+    Returns:        None
     """
     # Set up the workspace
     set_up_workspace()
@@ -132,17 +117,17 @@ def main():
     # Load test image, convert to numpy array, process image
     org_image = Image.open(image_path)
     test_image = np.asarray(org_image)
-    test_image = process_image(test_image)
+    test_image = utf.process_image(test_image)
 
     # Predict class and probability of image
     probs, top_k_classes = predict(image_path, model, class_names, 5)
 
     # Plot image, classes and probabilities
-    show_image(test_image, probs, top_k_classes)
+    utf.show_image(test_image, probs, top_k_classes)
 
     # Show all matplotlib plots made in the script
     plt.show()
 
-# Rund main function
+# Run main function
 if __name__ == '__main__':
     main()
