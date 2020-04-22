@@ -100,6 +100,63 @@ def create_pipeline():
     validation_batches = validation_set.map(format_image).batch(batch_size).prefetch(1)
     testing_batches = test_set.map(format_image).batch(batch_size).prefetch(1)
 
+def image_generator_pipeline():
+    """
+    Create pipeline using image generator. See Introduction into Machine Learning with TensorFlow, Chapter 3.4, Notebook 7
+    Not yet implemented in script
+    Will be implemented in next iteration (as soon as images stored locallly)
+    Not yet tested
+    This code is put here so I don't forget to implement it the next time I use this script
+    """
+    # Create a pipeline for each set.
+    # Define batch size and image size
+    batch_size = 64
+    image_size = 224
+
+    # Define directories
+    base_dir = os.path.join('./')
+    train_dir = os.path.join(base_dir, 'train')
+    validation_dir = os.path.join(base_dir, 'validation')
+    test_dir = os.path.join(base_dir, 'test')
+
+    # Create generator for training set
+    # It is common pactice to introduce randomness to the training data set
+    image_gen_train = ImageDataGenerator(rescale=1. / 255,
+                                         horizontal_flip=True,
+                                         width_shift_range=0.2,
+                                         height_shift_range=0.2,
+                                         rotation_range=20,
+                                         zoom_range=0.2,
+                                         shear_range=20,
+                                         fill_mode='nearest')
+
+    # Create generator for validation set
+    # Non randomness is introduced to the validation set except rescaling the image values to be between 0 and 1
+    image_gen_val = ImageDataGenerator(rescale=1. / 255)
+
+    # Create generator for test set
+    # Non randomness is introduced to the test set except rescaling the image values to be between 0 and 1
+    image_gen_test = ImageDataGenerator(rescale=1. / 255)
+
+    # Set the pipeline fot the training set
+    train_data_gen = image_gen_train.flow_from_directory(directory=train_dir,
+                                                         batch_size=batch_size,
+                                                         shuffle=True,
+                                                         target_size=[image_size, image_size],
+                                                         class_mode='categorical')
+
+    # Set the pipeline fot the validation set
+    val_data_gen = image_gen_val.flow_from_directory(directory=validation_dir,
+                                                     batch_size=BATCH_SIZE,
+                                                     target_size=(IMG_SHAPE, IMG_SHAPE),
+                                                     class_mode='binary')
+
+    # Set the pipeline fot the test set
+    test_data_gen = image_gen_test.flow_from_directory(directory=test_dir,
+                                                     batch_size=BATCH_SIZE,
+                                                     target_size=(IMG_SHAPE, IMG_SHAPE),
+                                                     class_mode='binary')
+
 def train_classifier():
     """
     Build and train your network.
