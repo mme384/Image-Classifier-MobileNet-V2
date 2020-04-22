@@ -11,11 +11,19 @@
 # Import modules
 import numpy as np # Import module to use numpy
 import matplotlib.pyplot as plt # Import module to use matplotlib
+import tensorflow as tf # Import module to use tensorflow
 
 def explore_dataset(dataset_info, training_set, num_classes, class_names):
     """
-    Training utility function
     Explore the loaded dada set
+    (Training utility function)
+
+    Parameters:     dataset_info:   Info annotated to data set
+                    training_set:   Training data set
+                    num_classes:    Number of classes
+                    class_names:    List containing all class names
+    Returns:        Prints information on the data set
+                    Plots a sample image
     """
     # Display dataset_info
     dataset_info
@@ -24,7 +32,6 @@ def explore_dataset(dataset_info, training_set, num_classes, class_names):
     train_num_examples = dataset_info.splits['train'].num_examples
     validation_num_examples = dataset_info.splits['validation'].num_examples
     test_num_examples = dataset_info.splits['test'].num_examples
-
 
     # Print the above values
     print('There are {:,} images in the training set'.format(train_num_examples))
@@ -50,8 +57,12 @@ def explore_dataset(dataset_info, training_set, num_classes, class_names):
 
 def training_performance(history):
     """
-    Training utility function
     Plot the loss and accuracy values achieved during training for the training and validation set
+    (Training utility function)
+
+    Parameters:     history:        History / Details on the training of the model
+    Returns:        Plots the training and validation accuracy
+                    Plots the training and validation loss
     """
     # Get training and validation accuracy
     training_accuracy = history.history['accuracy']
@@ -81,8 +92,14 @@ def training_performance(history):
 
 def model_test(model, testing_batches, class_names):
     """
-    Training utility function
     Print the loss and accuracy values achieved on the entire test set
+    (Training utility function)
+
+    Parameters:     model:          TensorFlow Keras model
+                    testing_batches: Batch of test images
+                    class_names:    Complete list containing class names and their indices
+    Returns:        Plot 30 images from the test batch with correct label, while green labels are correctly classified
+                    images and red labels are misclassified images
     """
     # Evaluate the model based on the testing batch
     test_loss, test_accuracy = model.evaluate(testing_batches)
@@ -110,3 +127,42 @@ def model_test(model, testing_batches, class_names):
         plt.title(class_names[str(labels[n])], color=color)
         plt.axis('off')
         # plt.show()
+
+def process_image(image):
+    '''
+    Process image to be ready for model
+    (Prediction utility function)
+
+    Parameters:     Image to be processed
+    Returns:        Processed image ready for prediction
+    '''
+    # Define image size
+    image_size = 224
+
+    image = tf.cast(image, tf.float32)
+    image = tf.image.resize(image, (image_size, image_size))
+    image /= 255
+    return image
+
+def show_image(image, probs, classes):
+    '''
+    Plot figure with a subplot containing the classified image and a subplot containing a vertical bar graph of the
+    probabilities of the top k classes predicted by the model
+    (Prediction utility function)
+
+    Parameters:     image:          Classified image
+                    probs:          Numpy array of top k probabilities predicted by the model
+                    classes:        List of top k classes predicted by the model
+    Returns:        None
+    '''
+    fig, (ax1, ax2) = plt.subplots(figsize = (10,5), ncols = 2)
+    ax1.imshow(image, cmap = plt.cm.binary)
+    ax1.axis('off')
+    ax1.set_title('Image')
+    ax2.barh(np.arange(probs.size), probs)
+    ax2.set_aspect(0.2)
+    ax2.set_yticks(np.arange(probs.size))
+    ax2.set_yticklabels(classes, size = 'small')
+    ax2.set_title('Top k Probabilities')
+    ax2.set_xlim(0, 1.1)
+    plt.tight_layout()
