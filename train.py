@@ -19,7 +19,7 @@ import os # Import module to deal with path names used in image data generator
 from tensorflow.keras.preprocessing.image import ImageDataGenerator # Import module to create image data generator
 import tensorflow_hub as hub # Import module to import model from tensorflow Hub
 import logging # Import module to define logger
-import json # Import module to do label mapping
+import json # Import module for label mapping
 import datetime # Date and time for time stamp in file name
 import pytz # Adjust time zone for time stamp in file name
 from PIL import Image # Process image for prediction
@@ -29,6 +29,9 @@ import utility_functions as utf # Import module with custom utility functions
 def set_up_workspace():
     """
     Run code to setup up the workspace
+
+    Parameters:     None
+    Returns:        None
     """
     # Set defaults for the workspace
     warnings.filterwarnings('ignore')
@@ -60,10 +63,16 @@ def load_data_set():
     Load the dataset with TensorFlow Datasets and create a training set, a validation set and a test set
     # https://www.tensorflow.org/datasets/catalog/overview
     # https://www.tensorflow.org/datasets/catalog/oxford_flowers102
-    """
-    # Define global variables
-    global dataset, dataset_info, training_set, validation_set, test_set, num_classes, class_names
 
+    Parameters:     None
+    Returns:        dataset:        Data set loaded from hub
+                    dataset_info:   Info annotated to data set
+                    training_set:   Training data set
+                    validation_set: Validation data set
+                    test_set:       Test data set
+                    num_classes:    Number of classes
+                    class_names:    List containing all class names
+    """
     # Load the dataset with TensorFlow Datasets.
     dataset, dataset_info = tfds.load('oxford_flowers102', as_supervised=True, shuffle_files=True, with_info=True)
 
@@ -77,13 +86,21 @@ def load_data_set():
     with open('label_map.json', 'r') as f:
         class_names = json.load(f)
 
-def create_pipeline():
+    return dataset, dataset_info, training_set, validation_set, test_set, num_classes, class_names
+
+def create_pipeline(training_set, validation_set, test_set):
     """
     Create a pipeline for the training, validation and testing set
-    """
-    # Define global variables
-    global batch_size, image_size, training_batches, validation_batches, testing_batches
 
+    Parameters:     training_set:   Training data set
+                    validation_set: Validation data set
+                    test_set:       Test data set
+    Returns:        batch_size:     Batch size
+                    image_size:     Image dimensions (width, height)
+                    training_batches: Batches of training data set
+                    validation_batches: Batches of validation data set
+                    testing_batches: Batches of test data set
+    """
     # Define batch size and image size
     batch_size = 64
     image_size = 224
@@ -100,6 +117,8 @@ def create_pipeline():
     validation_batches = validation_set.map(format_image).batch(batch_size).prefetch(1)
     testing_batches = test_set.map(format_image).batch(batch_size).prefetch(1)
 
+    return batch_size, image_size, training_batches, validation_batches, testing_batches
+
 def image_generator_pipeline():
     """
     Create pipeline using image generator. See Introduction into Machine Learning with TensorFlow, Chapter 3.4, Notebook 7
@@ -107,6 +126,9 @@ def image_generator_pipeline():
     Will be implemented in next iteration (as soon as images stored locallly)
     Not yet tested
     This code is put here so I don't forget to implement it the next time I use this script
+
+    Parameters:     tbd
+    Returns:        tbd
     """
     # Create a pipeline for each set.
     # Define batch size and image size
@@ -157,13 +179,19 @@ def image_generator_pipeline():
                                                      target_size=(IMG_SHAPE, IMG_SHAPE),
                                                      class_mode='binary')
 
-def train_classifier():
+def train_classifier(image_size, training_batches, validation_batches, num_classes):
     """
-    Build and train your network.
-    """
-    # Define global variables
-    global model, history
+    Build and train your network
 
+    Parameters:     image_size:     Image dimensions (width, height)
+                    training_batches: Batches of training data set
+                    validation_batches: Batches of validation data set
+                    num_classes:    Number of classes
+    Returns:        model:          Trained model
+                    history:        History / Details on the training of the model
+                    save_best_model: Saves best model in time stamped file under path_and_filename
+
+    """
     # URL to the MobileNet pre-trained model
     URL = "https://tfhub.dev/google/tf2-preview/mobilenet_v2/feature_vector/4"
 
@@ -177,7 +205,7 @@ def train_classifier():
     dropout_rate = 0.2
 
     # Number of epochs. The high number is on purpose, as early stopping is implemented.
-    num_max_epochs = 50
+    num_max_epochs = 2
 
     # Build model
     model = tf.keras.Sequential([feature_extractor,
@@ -212,24 +240,29 @@ def train_classifier():
                         validation_data=validation_batches,
                         callbacks=[early_stopping, save_best_model])
 
+    return model, history
+
 def main():
     """
     main function
+
+    Parameters:     None
+    Returns:        None
     """
     # Set up the workspace
     set_up_workspace()
 
     # Load dataset and create training set, validation set and test set
-    load_data_set()
+    dataset, dataset_info, training_set, validation_set, test_set, num_classes, class_names = load_data_set()
 
     # Explore loaded data set using utility functions
     utf.explore_dataset(dataset_info, training_set, num_classes, class_names)
 
     # Create a pipeline for the training, validation and testing set
-    create_pipeline()
+    batch_size, image_size, training_batches, validation_batches, testing_batches = create_pipeline(training_set, validation_set, test_set)
 
     # Build and train model
-    train_classifier()
+    model, history = train_classifier(image_size, training_batches, validation_batches, num_classes)
 
     # Plot loss & accuracy for training & validation set using utility functions
     utf.training_performance(history)
@@ -237,7 +270,7 @@ def main():
     # Print the loss and accuracy values achieved on the entire test set using utility functions
     utf.model_test(model, testing_batches, class_names)
 
-    # Show all matplotlib plots made in the script
+    # Show all matplotlib plots
     plt.show()
 
 # Run main function
