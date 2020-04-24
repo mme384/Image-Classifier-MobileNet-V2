@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    FILE NAME: train_utility_functions
+    FILE NAME: utility_functions
     AUTHOR: Michalis Meyer
     DATE CREATED: 21.04.2020
     DATE LAST MODIFIED: 
