@@ -7,7 +7,7 @@
     DATE LAST MODIFIED: 
     PYTHON VERSION: 3.7
     SCRIPT PURPOSE: Predict the class of an image
-    SAMPLE COMMAND LINE: python predict.py --file_path './test_images/hard-leaved_pocket_orchid.jpg' --model_filename 'model_20200421_235721.h5' --top_k 5  --category_names 'label_map.json'
+    SAMPLE COMMAND LINE: python predict.py --file_path './test_images/hard-leaved_pocket_orchid.jpg' --model_filename 'model_20200422_223607.h5' --top_k 5  --category_names 'label_map.json'
 """
 # Import modules
 import warnings # Import module to deal with warnings
@@ -68,7 +68,7 @@ def get_input_args():
     # Model file name as --model_filename
     parser.add_argument("--model_filename",
                         type = str,
-                        default = 'model_20200421_235721.h5',
+                        default = 'model_20200422_223607.h5',
                         help = "Model path and file name.")
 
     # Top k classes to be returned as --top_k with default value 5
