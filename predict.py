@@ -166,6 +166,9 @@ def main():
     # Predict class and probability of image
     probs, top_k_classes = predict(in_args.file_path, model, class_names, in_args.top_k)
 
+    # Print classes and probabilities
+    utf.display_predictions(probs, top_k_classes)
+
     # Plot image, classes and probabilities
     utf.show_image(test_image, probs, top_k_classes)
 

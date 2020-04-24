@@ -13,7 +13,6 @@ import numpy as np # Import module to use numpy
 import matplotlib.pyplot as plt # Import module to use matplotlib
 import tensorflow as tf # Import module to use tensorflow
 
-
 def explore_dataset(dataset_info, training_set, num_classes, class_names):
     """
     Explore the loaded dada set
@@ -167,3 +166,27 @@ def show_image(image, probs, classes):
     ax2.set_title('Top k Probabilities')
     ax2.set_xlim(0, 1.1)
     plt.tight_layout()
+
+def display_predictions(probs, classes):
+    '''
+    Prints the top k predicted classes and their corresponding probabilities
+    (Prediction utility function)
+
+    Parameters:     probs:          Numpy array of top k probabilities predicted by the model
+                    classes:        List of top k classes predicted by the model
+    Returns:        Prints the top k predicted classes and their corresponding probabilities
+    '''
+    # Build a dictionary of the results be print the results nicely
+    result_dic = {}
+    for index in range(len(classes)):
+        result_dic[classes[index]] = probs[index]
+
+    # Print header
+    header_1 = 'Class Name'
+    header_2 = 'Probability'
+    print(f'{header_1:20} {header_2:5}')
+
+    # Print results in a table
+    for class_name, class_prob in result_dic.items():
+        print(f'{class_name:20} {class_prob:10.0%}')
+
