@@ -13,6 +13,7 @@ import numpy as np # Import module to use numpy
 import matplotlib.pyplot as plt # Import module to use matplotlib
 import tensorflow as tf # Import module to use tensorflow
 
+
 def explore_dataset(dataset_info, training_set, num_classes, class_names):
     """
     Explore the loaded dada set
