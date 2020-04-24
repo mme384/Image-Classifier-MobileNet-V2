@@ -5,7 +5,7 @@
     AUTHOR: Michalis Meyer
     DATE CREATED: 19.04.2020
     DATE LAST MODIFIED: 
-    PYTHON VERSION: 
+    PYTHON VERSION: 3.7
     SAMPLE COMMAND LINE: 
     SCRIPT PURPOSE: Train neural network.
 """
@@ -205,7 +205,7 @@ def train_classifier(image_size, training_batches, validation_batches, num_class
     dropout_rate = 0.2
 
     # Number of epochs. The high number is on purpose, as early stopping is implemented.
-    num_max_epochs = 2
+    num_max_epochs = 50
 
     # Build model
     model = tf.keras.Sequential([feature_extractor,
