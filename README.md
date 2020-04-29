@@ -27,8 +27,9 @@ The custom classifier is used instead of the pretrained classifier. The classifi
 - The output layer has 102 nodes, as there are 102 classes, and uses Softmax activation function.
 
 
-## Python Version
-3.7
+## Python Version & IDE
+- Python Version: 3.7
+- IDE: PyCharm
 
 ## Python Modules
 - warnings
