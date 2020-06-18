@@ -1,8 +1,15 @@
 # Image-Classifier-MobileNet-V2
+
+## Project Description
 MobileNet CNN Image classifier build on TensorFlow. Developed as a project as partial fulfillment of Udacity Nanodegree "Introduction into Machine Learning with TensorFlow".
 
 1) train.py defines a CNN based on MobileNet-V2 in TensorFlow, trained and results in a model with about 80% accuracy.
 2) predict.py rebuilds the model and predict the class of an input image
+
+## Conclusions
+- Implementing Tensorflow felt very straight forward.
+- Training the MobileNet-V2 for this application was surprisingly quick (only classifier trainied).
+- The performance of the model is surprisingly good.
 
 ## Project Files
 - README.md: Project README
