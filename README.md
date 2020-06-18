@@ -9,7 +9,7 @@ MobileNet CNN Image classifier build on TensorFlow. Developed as a project as pa
 ## Conclusions
 - Implementing Tensorflow felt very straight forward.
 - Training the MobileNet-V2 for this application was surprisingly quick (only classifier trainied).
-- The performance of the model is surprisingly good.
+- Performance of the model is surprisingly good.
 
 ## Project Files
 - README.md: Project README
